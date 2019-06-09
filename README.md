@@ -112,17 +112,10 @@ You can stick to the few widgets provided by default or create your own ones (I 
 ### Improvements
 * Improve documentation and detailed descriptions.
 * Improve the reminder concept with more flexibility for new/customized reminders.
-* Add more functionality with the weather information (reminders, warnings...).
-* Add a door sensor to the Bendroom node to detect the status of the window. Add rain warning functionality to this node.
-* Add support for deep sleep for all the hardware nodes.
-* Replace (where possible and feasible) the IR RGB led bulbs by Led Stripes controlled directly from the microcontroller.
-* OTA updates.
-* Save microcontroller states in FLASH memory and load them at boot time.
+
 ### Features
 Feature name |	Feature description	| Involved nodes	| Involved external services |	Comments / Constrains
 ------------ |------------ |------------ |------------ |------------
 Kitchen status monitoring | Monitor the status of the heating plates and the oven. If they are on for a long time, trigger a reminder. If they are on and an exit event is detected, trigger a reminder (and maybe a IFTTT notification) | Kitchen node (new), Audio node | IFTTT | |
-Low power consumption mode | For large periods of no activity (e.g: vacation), allow all the HW nodes to go to Deep Sleep node for a defined time and wakeup afterwards. When they wake up, they will ask for the current state of this mode and decide to go back to normal mode or sleep again. | All HW nodes | | The HW mode will be useless while they are in Deep Sleep.
-Dashboard access from the internet | Allow to monitor and control the home automation system via Dashboard from the internet | | ? |
 Direct Alexa compatibility | Direct control of the devices from Alexa, without needing to use Sinric and without needing to emulate another device. Create own skill to allow more complex commands (e.g: Alexa, turn on the reminder X) | All nodes | Alexa, AWS... | Dependent on acess from the internet |
 ToDo list | Extension from the reminder node, but allowing to add/delete new items, change the type of trigger (e.g: when arriving home, when leaving home, when going to bed, at a defined time...) | | |
