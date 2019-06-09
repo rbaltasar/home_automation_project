@@ -15,6 +15,8 @@ This works fine in a theoretical world, but in the real world, some “tuning”
 * Find the maximum time between a pressure detected and an open door event to detect an entrance.
 * Avoid a false entrance detection when leaving, in the situations when the door is opened (exit detected), then the mat pressure is activated (as expected) and then, when closing the door, it bounces enough to trigger a door opened event. In this situation, the events 1 and 2 will trigger an exit event, and the events 2 and 3 will trigger an entrance event.
 
+It supports OTA software updates, under the URL "http://entrance_node.local".
+
 ## Implementation
 As these events are sporadic, so the logical way to implement them is using interrupts.
 Unfortunately the pressure sensor works horribly with interrupts. I tried debouncing with software (several pollings after the interrupt) and hardware (RC filter), but it kept triggering many interrupts, and even interacting with other parts of the software it was not supposed to (probably wrong cabling, or I messed up somehow else). The only way I could make it work stable is getting rid of the interrupts for this node and polling it directly with a high frequency.
@@ -23,7 +25,7 @@ Once an event is detected and published (e.g: door status, pressure, entrance, e
 
 ## Known issues and future improvements
 * Interrupt issue with mat pressure sensor: this sensor does not work reliable with interrupts (cabling, electronics...). Reading the state by polling solves the problem.
-* Broken IO pin for mat pressure sensor: after several days of using the node, with the mat pressure sensor directly connecting the IO pin (INPUT_PULLUP) and ground, the IO pin stopped working. Although it was set to INPUT_PULLUP, a digital read to this pin returns always 0, with or without direct connection to Vcc. It was also not possible to use this pin as output anymore, as it was always on LOW level. I changed the measurement method and now I implement the pullup with an external resistor (and another IO pin of course, as the original is still broken). So far the issue has not happened again.
+
 
 ## Used hardware
 * Nodemcu ESP12

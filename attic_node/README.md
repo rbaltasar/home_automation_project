@@ -4,6 +4,7 @@
 The attic node is basically a combination of the livingroom node and the attic node:
 * It does not control any light with an IR emitter.
 * It senses temperature, humidity and light, and monitors the state of the door.
+It supports OTA software updates, under the URL "http://attic_node.local".
 
 ## Implementation
 As this node does not control any light, it does not have any “responsiveness” requirement, and therefore we can define a much lower polling frequency.

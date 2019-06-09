@@ -1,5 +1,8 @@
 # Balcony node
 
+This node is deprecated and no longer used in the v2.0 version.
+The Livingroom and Terrace nodes take over its functionality.
+
 ## Functionality
 This node detects when the door of the balcony is opened and closed.
 It can be considered as a simplification of the “Entrance Node”.

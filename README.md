@@ -10,6 +10,7 @@
 * New Terrace node for monitoring temperature, humidity and light of the terrace. Controls a LED stripe for terrace lightning.
 * Bedroom node upgraded to ESP32. It controls directly a LED stripe for bedroom lightning (instead of IR). Added feature to monitor the status of the bedroom window.
 * Extended audio node to support guest messages. The generic messages are customized with the guest name when the feature is properly configured in the Dashboard.
+* Improved reminder concept. Each reminder can be configured to be triggered with an exit event, a good night event, or both. The reminders can be switched off from Alexa (all together).
 
 ## Introduction
 I started this project to create a solution to a lazy problem: my washing machine is in my basement and I live on the third floor.
