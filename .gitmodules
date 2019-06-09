@@ -1,0 +1,12 @@
+[submodule "alexa_node"]
+	path = alexa_node
+	url = https://github.com/rbaltasar/alexa_node.git
+[submodule "audio_node"]
+	path = audio_node
+	url = https://github.com/rbaltasar/audio_node.git
+[submodule "presence_detection_node"]
+	path = presence_detection_node
+	url = https://github.com/rbaltasar/presence_detection_node.git
+[submodule "smart_washmachine"]
+	path = smart_washmachine
+	url = https://github.com/rbaltasar/smart_washmachine.git
