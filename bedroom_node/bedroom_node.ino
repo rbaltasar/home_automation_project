@@ -12,7 +12,7 @@
     bedroom_node/light_state
     bedroom_node/light_color
     bedroom_node/light_intensity
-
+    
 
   Node description:
     The node gathers and publishes temperature and humidity information
@@ -36,10 +36,7 @@
 #include "clapDetection.h"
 #include "LED_controller.h"
 #include "OTA_updater_ESP32.h"
-
-/* Network settings */
-const char* ssid = "";
-const char* password = "";
+#include "network_credentials.h"
 
 /* MQTT settings */
 const char* mqtt_server = "192.168.2.118";
@@ -139,14 +136,14 @@ void setup() {
   Serial.begin(115200);
 #endif
 
-  setup_wifi();
+  setup_wifi(); 
   delay(100);
   setup_mqtt();
   delay(100);
   setup_hardware();
-
+  
   /* ISR for window Open/Closed detection */
-  attachInterrupt(digitalPinToInterrupt(DOOR_SENSOR_PIN), door_detection_isr, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(DOOR_SENSOR_PIN), door_detection_isr, CHANGE);
 
   /* Initial LED configuration */
   /* Initial configuration of the lamp when the system is booted */
@@ -168,7 +165,7 @@ void setup() {
   initState.isCompleted = false;
 
   /* Setup finished. Show leds */
-  LED_controller.setLeds(lamp_state.val.color,0,NUM_LEDS/3);
+  LED_controller.setLeds(lamp_state.val.color,0,NUM_LEDS/3); 
 
   /* Ensure that the circular buffer starts at the index 0 */
   temperature_buffer[BUFFER_SIZE] = 0;
@@ -288,8 +285,8 @@ void setup_wifi() {
   MACAddress_string = WiFi.macAddress();
 
   /* Translate the IP address to String to have a unique name for MQTT client */
-  IPAddress_string = IpAddress2String(WiFi.localIP());
-
+  IPAddress_string = IpAddress2String(WiFi.localIP());  
+  
 #if  (DEBUG_TRACES == 1)
    Serial.println("Wifi setup completed");
 #endif
@@ -302,7 +299,7 @@ void setup_hardware()
   /* Built in LED */
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   digitalWrite(LED_BUILTIN, LOW); //This means led OFF
-
+  
   /* Door sensor */
   pinMode(DOOR_SENSOR_PIN, INPUT_PULLUP);
 
@@ -336,22 +333,22 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   /* Filter for topics */
   if( strcmp(topic,"bedroom_node/mode_request") == 0 )
-  {
-    lamp_state.val.lamp_mode = root["mode"];
+  {   
+    lamp_state.val.lamp_mode = root["mode"];   
     Serial.println(lamp_state.val.lamp_mode);
   }
-
+  
   else if(strcmp(topic,"bedroom_node/light_intensity") == 0)
-  {
+  {  
     int rcv = root["intensity"];
 
     if(rcv == 0) rcv = 255;
-
+    
     else
     {
       rcv = 11 - rcv;
     }
-
+    
     lamp_state.val.brightness = rcv;
     Serial.println(rcv);
   }
@@ -367,12 +364,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   else if(strcmp(topic,"bedroom_node/effect_speed") == 0)
   {
-
+ 
     int rcv = root["speed"];
     rcv = 1000 - 10 * rcv;
     lamp_state.val.effect_speed = rcv; //Delay in ms
     Serial.println(rcv);
-  }
+  }  
 
   else if(strcmp(topic,"bedroom_node/light_color") == 0)
   {
@@ -396,9 +393,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
     if(strcmp(mac_request,MACAddress_string.c_str()) == 0)
     {
       ota_url = root["OTA_URL"];
-      lamp_state.val.lamp_mode = root["mode"];
+      lamp_state.val.lamp_mode = root["mode"];    
     }
-
+    
     initState.isCompleted = true;
   }
   else if(strcmp(topic,"bedroom_node/enable_clap") == 0)
@@ -408,7 +405,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     if(rcv == 1) enable_clap = true;
     else enable_clap = false;
   }
-
+  
   else if(strcmp(topic,"bedroom_node/alive_rx") == 0)
   {
     last_alive_rx = millis();
@@ -419,7 +416,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void reconnect()
 {
   // Loop until we're reconnected
-
+  
   if (!client.connected())
   {
     Serial.print("Attempting MQTT connection...");
@@ -440,9 +437,9 @@ void reconnect()
       delay(100);
       if(++mqtt_reconnect_counter > 10)  ESP.restart();
     }
-
+    
   }
-
+ 
 }
 
 /* Handle the network part of the loop */
@@ -451,19 +448,19 @@ void network_loop()
 
   /* MQTT loop */
   if (!client.connected()) reconnect();
-  client.loop();
+  client.loop();  
 
   /* Alive check */
-  unsigned long now = millis();
+  unsigned long now = millis(); 
 
   if( (now - last_alive_tx)> ALIVE_PERIOD)
-  {
+  {   
     client.publish("bedroom_node/alive_tx", "");
     last_alive_tx = now;
   }
 
   if( (now - last_alive_rx)> (3*ALIVE_PERIOD))
-  {
+  {   
     Serial.println("Lost MQTT connection. Reboot");
     ESP.restart();
   }
@@ -473,7 +470,7 @@ void network_loop()
 /* Average an array. Remove oldest element. Add newest element. Filter out NaN values */
 float smoothing_filter(float* measurement_buffer, float measurement)
 {
-
+  
   float avg = 0;
   uint8_t measurement_counter = 0;
 
@@ -557,7 +554,7 @@ void get_door_status()
   #endif
 }
 
-/* Window state change ISR */
+/* Window state change ISR. Unused to avoid microcontroller reboot */
 void door_detection_isr()
 {
   /* Jump directly into the node_specific_loop in the next loop iteration */
@@ -580,7 +577,7 @@ void poll_sensors()
 void publish_mode(int lamp_mode)
 {
   /* Ensure that the critical topics get published */
-  client.publish("bedroom_node/lamp_mode_feedback", String(lamp_mode).c_str());
+  client.publish("bedroom_node/lamp_mode_feedback", String(lamp_mode).c_str());   
 }
 
 /* Node-specific logic */
@@ -588,7 +585,7 @@ void node_logic()
 {
   /* Process double clap detected --> Switch ON/OFF */
   if(clap_detector.getDetectionType() == DOUBLE_CLAP)
-  {
+  {    
     if(lamp_state.val.lamp_mode) lamp_state.val.lamp_mode = 0;
     else lamp_state.val.lamp_mode = 1;
     clap_detector.resetDetectionType();
@@ -603,7 +600,7 @@ void node_logic()
     {
       if(++lamp_state.val.lamp_mode > 25) lamp_state.val.lamp_mode = 10;
     }
-
+    
     clap_detector.resetDetectionType();
 
     /* Publish mode to update Dashboard */
@@ -677,21 +674,21 @@ void node_specific_loop()
 
     /* Sensor polling */
     poll_sensors();
-
+  
     /* Internal logic */
     if(enable_clap) node_logic();
-
+  
     /* Publish sensor information */
     publish_status();
 
     last_iteration = now;
 
-  }
+  } 
 }
 
 void status_update()
-{
-
+{ 
+  
   /* Check difference in mode request */
   if(lamp_state.val.lamp_mode != lamp_state.old.lamp_mode)
   {
@@ -709,20 +706,20 @@ void status_update()
       lamp_state.val.effect_speed = 50;
       lamp_state.val.streaming = false;
     }
-
+    
     Serial.print("Received change request to mode ");
     Serial.println(lamp_state.val.lamp_mode);
-
-    lamp_state.old.lamp_mode = lamp_state.val.lamp_mode;
-    LED_controller.update_mode();
+       
+    lamp_state.old.lamp_mode = lamp_state.val.lamp_mode; 
+    LED_controller.update_mode();   
   }
 
   else if(lamp_state.val.brightness != lamp_state.old.brightness)
   {
     Serial.print("Received change request to brightness level ");
-    Serial.println(lamp_state.val.brightness);
+    Serial.println(lamp_state.val.brightness);    
 
-    lamp_state.old.brightness = lamp_state.val.brightness;
+    lamp_state.old.brightness = lamp_state.val.brightness;  
     LED_controller.update_mode();
   }
 
@@ -730,16 +727,16 @@ void status_update()
   {
     Serial.print("Received change request to color: ");
     Serial.println(lamp_state.val.color.R);
-    Serial.println(lamp_state.val.color.G);
-    Serial.println(lamp_state.val.color.B);
+    Serial.println(lamp_state.val.color.G);   
+    Serial.println(lamp_state.val.color.B);    
 
-    lamp_state.old.brightness = lamp_state.val.brightness;
+    lamp_state.old.brightness = lamp_state.val.brightness;  
 
     LED_controller.update_mode();
 
     lamp_state.old.color.R = lamp_state.val.color.R;
     lamp_state.old.color.G = lamp_state.val.color.G;
-    lamp_state.old.color.B = lamp_state.val.color.B;
+    lamp_state.old.color.B = lamp_state.val.color.B;     
   }
 }
 
@@ -753,22 +750,22 @@ void publish_initcomm()
 
   char JSONmessageBuffer[256];
   root_send.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
-
+  
   client.publish("bedroom_node/initcomm_tx", JSONmessageBuffer);
 }
 
 void initComm()
 {
-
+  
   /* Send a MQTT request */
   if(!initState.hasStarted)
-  {
+  {   
     LED_controller.setLeds(lamp_state.val.color,0,(NUM_LEDS*2)/3);
     publish_initcomm();
-
+    
     initState.hasStarted = true;
-    initState.elapsed_time = millis();
-  }
+    initState.elapsed_time = millis();    
+  }  
 
   /* Wait asynchronously for the answer */
   else if(initState.hasStarted)
@@ -778,17 +775,17 @@ void initComm()
     {
 
       client.unsubscribe("bedroom_node/initcommrx");
-
+      
       sysState = NORMAL;
       setup_OTA();
 
       delay(100);
-
+      
       LED_controller.setAllLeds(lamp_state.val.color,0);
-
+      
       lamp_state.val.color.R = RGB_DEFAULT;
       lamp_state.val.color.G = RGB_DEFAULT;
-      lamp_state.val.color.B = RGB_DEFAULT;
+      lamp_state.val.color.B = RGB_DEFAULT;      
 
       return;
     }
@@ -807,7 +804,7 @@ void initComm()
   }
 }
 
-void loop()
+void loop() 
 {
 
   switch(sysState)
@@ -816,7 +813,7 @@ void loop()
       network_loop();
       initComm();
       break;
-
+      
     case NORMAL:
       network_loop();
       updater.OTA_handle();
@@ -826,7 +823,7 @@ void loop()
       /* Clap detection state machine */
       if(enable_clap)
       {
-        if(clap_detector.feed()) last_iteration = 0;
+        if(clap_detector.feed()) last_iteration = 0; 
       }
       break;
     default:
