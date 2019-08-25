@@ -2,7 +2,12 @@
   "mask": 48,
   "effects":
   [
-    { "mode": 0, "speed": 50, "delay": 50, "r": 255, "g": 0, "b": 0 },
-    { "mode": 0, "speed": 50, "delay": 50, "r": 255, "g": 0, "b": 0 }
+    { "mode": 13, "speed": 94, "delay": 0, "r": 0, "g": 0, "b": 0, "isRandomColorTransition": 0 },
+    { "mode": 15, "speed": 98, "delay": 0, "r": 200, "g": 0, "b": 255, "isRandomColorTransition": 1 },
+    { "mode": 17, "speed": 83, "delay": 0, "r": 0, "g": 0, "b": 0, "isRandomColorTransition": 0 },
+    { "mode": 18, "speed": 83, "delay": 0, "r": 0, "g": 100, "b": 255, "isRandomColorTransition": 1 },
+    { "mode": 20, "speed": 95, "delay": 0, "r": 0, "g": 255, "b": 100, "isRandomColorTransition": 1 },
+    { "mode": 22, "speed": 97, "delay": 0, "r": 0, "g": 0, "b": 0, "isRandomColorTransition": 0 },
+    { "mode": 25, "speed": 0, "delay": 7, "r": 0, "g": 0, "b": 255, "isRandomColorTransition": 0 }
   ]
 }
