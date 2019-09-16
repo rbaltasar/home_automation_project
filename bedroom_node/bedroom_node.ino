@@ -79,11 +79,10 @@ unsigned long last_publish[NUM_PUBLISH_TOPICS];
 WiFiClient espClient;
 PubSubClient client(espClient);
 WebSocketsClient webSocket;
-DynamicJsonBuffer jsonBuffer(250);
 unsigned long last_alive_tx = 0;
 unsigned long last_alive_rx = 0;
+unsigned long m_last_iteration_reconnect = 0;
 uint8_t mqtt_reconnect_counter = 0;
-
 
 /* List of subscribed topics */
 #define NUM_SUBSCRIBED_TOPICS 8
@@ -185,45 +184,6 @@ String IpAddress2String(const IPAddress& ipAddress)
   String(ipAddress[2]) + String(".") +\
   String(ipAddress[3])  ;
 }
-
-#if 0
-/* Print reset reason */
-void print_reset_reason(RESET_REASON reason)
-{
-  switch ( reason)
-  {
-    case 1  : Serial.println ("Vbat power on reset");break;
-    case 3  : Serial.println ("Software reset digital core");break;
-    case 4  : Serial.println ("Legacy watch dog reset digital core");break;
-    case 5  : Serial.println ("Deep Sleep reset digital core");break;
-    case 6  : Serial.println ("Reset by SLC module, reset digital core");break;
-    case 7  : Serial.println ("Timer Group0 Watch dog reset digital core");break;
-    case 8  : Serial.println ("Timer Group1 Watch dog reset digital core");break;
-    case 9  : Serial.println ("RTC Watch dog Reset digital core");break;
-    case 10 : Serial.println ("Instrusion tested to reset CPU");break;
-    case 11 : Serial.println ("Time Group reset CPU");break;
-    case 12 : Serial.println ("Software reset CPU");break;
-    case 13 : Serial.println ("RTC Watch dog Reset CPU");break;
-    case 14 : Serial.println ("for APP CPU, reseted by PRO CPU");break;
-    case 15 : Serial.println ("Reset when the vdd voltage is not stable");break;
-    case 16 : Serial.println ("RTC Watch dog reset digital core and rtc module");break;
-    default : Serial.println ("NO_MEAN");
-  }
-}
-
-/* Get the reset reason for each core */
-void get_reset_reason()
-{
-  reset_reason_0 = rtc_get_reset_reason(0);
-  reset_reason_1 = rtc_get_reset_reason(1);
-
-  Serial.println("CPU0 reset reason:");
-  print_reset_reason(reset_reason_0);
-
-  Serial.println("CPU1 reset reason:");
-  print_reset_reason(reset_reason_0);
-}
-#endif
 
 /* Subscribe to a defined list of topics */
 void subscribe_topics()
@@ -329,7 +289,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
 #endif
 
   /* Parse JSON object */
-  JsonObject& root = jsonBuffer.parseObject(payload);
+  StaticJsonDocument<128> root;
+  DeserializationError error = deserializeJson(root, payload);
+
+  /* Test if parsing succeeded */
+  if (error) {
+    Serial.print("deserializeMsgPack() failed: ");
+    Serial.println(error.c_str());
+  }
 
   /* Filter for topics */
   if( strcmp(topic,"bedroom_node/mode_request") == 0 )
@@ -759,8 +726,7 @@ void initComm()
   
   /* Send a MQTT request */
   if(!initState.hasStarted)
-  {   
-    LED_controller.setLeds(lamp_state.val.color,0,(NUM_LEDS*2)/3);
+  {      
     publish_initcomm();
     
     initState.hasStarted = true;
@@ -800,6 +766,13 @@ void initComm()
       Serial.println("Error in communication setup. Restarting ESP32");
 
       ESP.restart();
+    }
+    /* Timeout. Show error and reset */
+    else if( (millis() - m_last_iteration_reconnect ) > HANDSHAKE_ATTEMPT_INTERVAL )
+    {
+      /* Initiate handshake. TODO: check that MQTT communication is being used */
+      publish_initcomm();
+      m_last_iteration_reconnect = millis();
     }
   }
 }
