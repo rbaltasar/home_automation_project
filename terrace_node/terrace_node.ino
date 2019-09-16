@@ -63,9 +63,9 @@ unsigned long last_publish[NUM_PUBLISH_TOPICS];
 /* Communication settings */
 WiFiClient espClient;
 PubSubClient client(espClient);
-DynamicJsonBuffer jsonBuffer(250);
 unsigned long last_alive_tx = 0;
 unsigned long last_alive_rx = 0;
+unsigned long m_last_iteration_reconnect = 0;
 
 /* List of subscribed topics */
 #define NUM_SUBSCRIBED_TOPICS 7
@@ -276,7 +276,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
 #endif
 
   /* Parse JSON object */
-  JsonObject& root = jsonBuffer.parseObject(payload);
+  StaticJsonDocument<128> root;
+  DeserializationError error = deserializeJson(root, payload);
+
+  /* Test if parsing succeeded */
+  if (error) {
+    Serial.print("deserializeMsgPack() failed: ");
+    Serial.println(error.c_str());
+  }
 
   /* Filter for topics */
   if( strcmp(topic,"terrace_node/mode_request") == 0 )
@@ -648,14 +655,13 @@ void status_update()
 
 void publish_initcomm()
 {
-  StaticJsonBuffer<256> jsonBuffer_send;
-  JsonObject& root_send = jsonBuffer_send.createObject();
+  StaticJsonDocument<128> root_send;
 
   root_send["mac"] = MACAddress_string.c_str();
   root_send["ip"] = IPAddress_string.c_str();
 
-  char JSONmessageBuffer[256];
-  root_send.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
+  char JSONmessageBuffer[128];
+  serializeJson(root_send, JSONmessageBuffer);
 
   client.publish("terrace_node/initcomm_tx", JSONmessageBuffer);
 }
@@ -665,8 +671,6 @@ void initComm()
   /* Send a MQTT request */
   if(!initState.hasStarted)
   {
-    LED_controller.setLeds(lamp_state.val.color,0,(NUM_LEDS*2)/3);
-
     publish_initcomm();
 
     initState.hasStarted = true;
@@ -685,14 +689,13 @@ void initComm()
       sysState = NORMAL;
       setup_OTA();
 
-      delay(1000);
+      delay(100);
 
       LED_controller.setAllLeds(lamp_state.val.color,0);
 
       lamp_state.val.color.R = RGB_DEFAULT;
       lamp_state.val.color.G = RGB_DEFAULT;
       lamp_state.val.color.B = RGB_DEFAULT;
-
 
       return;
     }
@@ -706,9 +709,14 @@ void initComm()
 
       Serial.println("Error in communication setup. Restarting ESP32");
 
-      delay(1000);
-
       ESP.restart();
+    }
+    /* Timeout. Show error and reset */
+    else if( (millis() - m_last_iteration_reconnect ) > HANDSHAKE_ATTEMPT_INTERVAL )
+    {
+      /* Initiate handshake */
+      publish_initcomm();
+      m_last_iteration_reconnect = millis();
     }
   }
 }
