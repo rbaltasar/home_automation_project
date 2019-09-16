@@ -709,14 +709,13 @@ void status_update()
 
 void publish_initcomm()
 {
-  StaticJsonBuffer<128> jsonBuffer_send;
-  JsonObject& root_send = jsonBuffer_send.createObject();
+  StaticJsonDocument<128> root_send;
 
   root_send["mac"] = MACAddress_string.c_str();
   root_send["ip"] = IPAddress_string.c_str();
 
-  char JSONmessageBuffer[256];
-  root_send.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
+  char JSONmessageBuffer[128];
+  serializeJson(root_send, JSONmessageBuffer);
   
   client.publish("bedroom_node/initcomm_tx", JSONmessageBuffer);
 }
