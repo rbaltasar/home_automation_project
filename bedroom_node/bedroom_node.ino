@@ -81,7 +81,6 @@ PubSubClient client(espClient);
 WebSocketsClient webSocket;
 unsigned long last_alive_tx = 0;
 unsigned long last_alive_rx = 0;
-unsigned long m_last_iteration_reconnect = 0;
 uint8_t mqtt_reconnect_counter = 0;
 
 /* List of subscribed topics */
@@ -289,7 +288,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 #endif
 
   /* Parse JSON object */
-  StaticJsonDocument<128> root;
+  StaticJsonDocument<256> root;
   DeserializationError error = deserializeJson(root, payload);
 
   /* Test if parsing succeeded */
@@ -709,12 +708,12 @@ void status_update()
 
 void publish_initcomm()
 {
-  StaticJsonDocument<128> root_send;
+  StaticJsonDocument<256> root_send;
 
   root_send["mac"] = MACAddress_string.c_str();
   root_send["ip"] = IPAddress_string.c_str();
 
-  char JSONmessageBuffer[128];
+  char JSONmessageBuffer[256];
   serializeJson(root_send, JSONmessageBuffer);
   
   client.publish("bedroom_node/initcomm_tx", JSONmessageBuffer);
@@ -725,7 +724,8 @@ void initComm()
   
   /* Send a MQTT request */
   if(!initState.hasStarted)
-  {      
+  {   
+    LED_controller.setLeds(lamp_state.val.color,0,(NUM_LEDS*2)/3);
     publish_initcomm();
     
     initState.hasStarted = true;
@@ -765,13 +765,6 @@ void initComm()
       Serial.println("Error in communication setup. Restarting ESP32");
 
       ESP.restart();
-    }
-    /* Timeout. Show error and reset */
-    else if( (millis() - m_last_iteration_reconnect ) > HANDSHAKE_ATTEMPT_INTERVAL )
-    {
-      /* Initiate handshake. TODO: check that MQTT communication is being used */
-      publish_initcomm();
-      m_last_iteration_reconnect = millis();
     }
   }
 }

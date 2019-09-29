@@ -31,9 +31,8 @@
 #define LED_PIN 14
 
 /* Communication settings (MQTT) */
-#define INIT_COMM_TIMEOUT 60000
+#define INIT_COMM_TIMEOUT 3000
 #define ALIVE_PERIOD 30000
 #define BLINK_PERIOD 2000
-#define HANDSHAKE_ATTEMPT_INTERVAL 3000
 
 #endif
