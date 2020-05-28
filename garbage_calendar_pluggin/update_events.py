@@ -4,6 +4,7 @@ import paho.mqtt.client as paho
 from icalendar import Calendar, Event
 from datetime import datetime
 import urllib3
+import string
 
 stuttgart_abfallkalendar_url = 'https://service.stuttgart.de/lhs-services/aws/api/ical?street=Mathildenstr.&streetnr=7A'
 TIME_THRESHOLD = 50
@@ -31,7 +32,10 @@ class CalendarPlugIn:
         self._notify_restmull = False
 
     def GetType(self, summary):
-        return summary.split()[0]
+        type = summary.split()[0]
+        printable = set(string.printable)
+        type_pruned = ''.join(filter(lambda x: x in printable, type))
+        return type_pruned
 
     def ProcessCalendar(self):
 
@@ -54,9 +58,9 @@ class CalendarPlugIn:
                     self._notify_plastic = True
                 elif(event_type == "Altpapier"):
                     self._notify_papier = True
-                elif(event_type == "Restmüll"):
+                elif(event_type == "Restmll"):
                     self._notify_restmull = True
-                elif(event_type == "Biomüll"):
+                elif(event_type == "Biomll"):
                     self._notify_biomull = True
 
     def OpenMQTTConnection(self):
