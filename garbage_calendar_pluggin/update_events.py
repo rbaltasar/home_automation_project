@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import time
 import paho.mqtt.client as paho
 from icalendar import Calendar, Event
