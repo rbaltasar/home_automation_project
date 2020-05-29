@@ -7,7 +7,7 @@ import urllib3
 import string
 
 stuttgart_abfallkalendar_url = 'https://service.stuttgart.de/lhs-services/aws/api/ical?street=Mathildenstr.&streetnr=7A'
-TIME_THRESHOLD = 50
+TIME_THRESHOLD = 1
 
 #--------------------------------------------#
 #Class process calendar event                #
